@@ -66,3 +66,16 @@ ffplay-standalone
 ├── opt_common.h
 └── README.md
 ```
+
+In ffplay.c
+- eliminate the line `#include "config_components.h"`
+
+In cmdutils.c
+- eliminate the line `#include "compat/va_copy.h"`
+- change `#include "libavutil/getenv_utf8.h"` to `#include "getenv_utf8.h"`
+- eliminate the line `#include "libavutil/libm.h"`
+
+In ffmpeg-internal/getenv_utf8.h
+- change `#include "mem.h"` to `#include <libavutil/mem.h>`
+
+Then, by adding a CMakeLists.txt file, the project can be compiled.

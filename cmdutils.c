@@ -30,7 +30,6 @@
    references to libraries that are not being built. */
 
 #include "config.h"
-#include "compat/va_copy.h"
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
 #include "libswscale/version.h"
@@ -39,10 +38,9 @@
 #include "libavutil/avstring.h"
 #include "libavutil/channel_layout.h"
 #include "libavutil/display.h"
-#include "libavutil/getenv_utf8.h"
+#include "getenv_utf8.h"
 #include "libavutil/mathematics.h"
 #include "libavutil/imgutils.h"
-#include "libavutil/libm.h"
 #include "libavutil/parseutils.h"
 #include "libavutil/eval.h"
 #include "libavutil/dict.h"
