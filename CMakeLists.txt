@@ -20,6 +20,10 @@ add_executable(${PROJECT_NAME}
     ffplay.cpp
     cmdutils.c
     opt_common.c
+    clock.c
+    packet_queue.c
+    frame_queue.c
+    decoder.c
 )
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/ffmpeg-internal")
