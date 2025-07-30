@@ -17,7 +17,7 @@ pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
 pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
 
 add_executable(${PROJECT_NAME}
-    ffplay.c
+    ffplay.cpp
     cmdutils.c
     opt_common.c
 )
