@@ -29,22 +29,16 @@
    Studio) will not omit unused inline functions and create undefined
    references to libraries that are not being built. */
 
-#include "config.h"
-#include "libavformat/avformat.h"
-#include "libswscale/swscale.h"
-#include "libswscale/version.h"
-#include "libswresample/swresample.h"
-#include "libavutil/avassert.h"
-#include "libavutil/avstring.h"
-#include "libavutil/channel_layout.h"
-#include "libavutil/display.h"
+#include <libswscale/swscale.h>
+#include <libswresample/swresample.h>
+#include <libavutil/avassert.h>
+#include <libavutil/avstring.h>
+#include <libavutil/display.h>
+#include <libavutil/parseutils.h>
+#include <libavutil/eval.h>
+#include <libavutil/dict.h>
+#include <libavutil/opt.h>
 #include "getenv_utf8.h"
-#include "libavutil/mathematics.h"
-#include "libavutil/imgutils.h"
-#include "libavutil/parseutils.h"
-#include "libavutil/eval.h"
-#include "libavutil/dict.h"
-#include "libavutil/opt.h"
 #include "cmdutils.h"
 #include "fopen_utf8.h"
 #include "opt_common.h"
@@ -142,7 +136,7 @@ void show_help_children(const AVClass *class, int flags)
         printf("\n");
     }
 
-    while (child = av_opt_child_class_iterate(class, &iter))
+    while ((child = av_opt_child_class_iterate(class, &iter)))
         show_help_children(child, flags);
 }
 
@@ -950,7 +944,7 @@ int filter_codec_opts(const AVDictionary *opts, enum AVCodecID codec_id,
         break;
     }
 
-    while (t = av_dict_iterate(opts, t)) {
+    while ((t = av_dict_iterate(opts, t))) {
         const AVClass *priv_class;
         char *p = strchr(t->key, ':');
 

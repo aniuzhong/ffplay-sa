@@ -25,43 +25,18 @@
 #include "cmdutils.h"
 #include "opt_common.h"
 
-#include "libavutil/avassert.h"
-#include "libavutil/avstring.h"
-#include "libavutil/bprint.h"
-#include "libavutil/channel_layout.h"
-#include "libavutil/cpu.h"
-#include "libavutil/dict.h"
-#include "libavutil/error.h"
-#include "libavutil/ffversion.h"
-#include "libavutil/log.h"
-#include "libavutil/mem.h"
-#include "libavutil/parseutils.h"
-#include "libavutil/pixdesc.h"
-#include "libavutil/version.h"
-
-#include "libavcodec/avcodec.h"
-#include "libavcodec/bsf.h"
-#include "libavcodec/codec.h"
-#include "libavcodec/codec_desc.h"
-#include "libavcodec/version.h"
-
-#include "libavformat/avformat.h"
-#include "libavformat/version.h"
-
-#include "libavdevice/avdevice.h"
-#include "libavdevice/version.h"
-
-#include "libavfilter/avfilter.h"
-#include "libavfilter/version.h"
-
-#include "libswscale/swscale.h"
-#include "libswscale/version.h"
-
-#include "libswresample/swresample.h"
-#include "libswresample/version.h"
-
-#include "libpostproc/postprocess.h"
-#include "libpostproc/version.h"
+#include <libavutil/avassert.h>
+#include <libavutil/bprint.h>
+#include <libavutil/cpu.h>
+#include <libavutil/ffversion.h>
+#include <libavutil/parseutils.h>
+#include <libavutil/pixdesc.h>
+#include <libavcodec/bsf.h>
+#include <libavdevice/avdevice.h>
+#include <libavfilter/avfilter.h>
+#include <libswscale/swscale.h>
+#include <libswresample/swresample.h>
+#include <libpostproc/postprocess.h>
 
 enum show_muxdemuxers {
     SHOW_DEFAULT,
