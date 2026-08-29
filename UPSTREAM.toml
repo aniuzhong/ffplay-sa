@@ -1,23 +1,27 @@
-# Snapshot identity for the vendored fftools/ and shim/ sources.
+# Snapshot identity for the vendored fftools/ and shim/ sources, and the
+# prebuilt FFmpeg provider for each platform.
 #
-# Alignment policy: the fftools ref MUST be the source commit declared by the
-# gyan package below (its README.txt "Source Code: .../commit/<hash>"). To
-# track a different ref deliberately, set [sync] fftools_ref and explain why
-# in [sync] reason — scripts/sync-fftools.ps1 warns about undocumented
-# overrides, and the pair (fftools ref, gyan package) should move together.
+# Alignment policy: the fftools ref MUST be the source commit of the prebuilt
+# package in use. Both platforms use BtbN daily builds; a build day produces
+# every variant from the same commit, so running scripts/update.ps1 and
+# scripts/update.sh back-to-back keeps [upstream] commit identical on both
+# platforms â€” that is what makes the twin-ffplay comparison on each platform
+# and across platforms meaningful.
 #
-# CMake reads [gyan] version and sdl2_version from this file to derive the
-# download URLs and tree locations. Edit versions only via
-# scripts/update-gyan.ps1 so the recorded commit stays consistent.
-
-[gyan]
-version = "9.0.1"
-url = "https://github.com/GyanD/codexffmpeg/releases/download/9.0.1/ffmpeg-9.0.1-full_build-shared.zip"
-sdl2_version = "2.32.10"
+# CMake reads the [windows] / [linux] asset for the running platform to derive
+# the download URL and tree location. Edit assets only via scripts/update.*
+# so the recorded commit stays consistent.
 
 [upstream]
 repository = "https://github.com/FFmpeg/FFmpeg"
-commit = "bf1b838f2ab88b4f8fd83443325c782ea0e0f7fa"
+commit = "e47273f4d9227152dcbf543cebaf9e2430ddbcc4"
+
+[windows]  # BtbN win64 gpl-shared; SDL2 headers come from the VC dev zip
+asset = "ffmpeg-n9.0-latest-win64-gpl-shared-9.0.zip"
+sdl2_version = "2.32.10"
+
+[linux]  # BtbN linux64 gpl-shared; requires libsdl2-dev from apt
+asset = "ffmpeg-n9.0-latest-linux64-gpl-shared-9.0.tar.xz"
 
 [sync]
 last_synced = "2026-08-29"

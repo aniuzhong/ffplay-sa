@@ -38,11 +38,11 @@
 #define CONFIG_VERSION3 1
 #define CONFIG_NONFREE 0
 
-/* platform / feature switches for MSVC against the gyan DLLs */
+/* platform / feature switches — values depend on the target platform */
 #define HAVE_GETENV 1
-#define HAVE_SETDLLDIRECTORY 1
-#define HAVE_COMMANDLINETOARGVW 1
-#define HAVE_GETMODULEHANDLE 1
+#define HAVE_SETDLLDIRECTORY @HAVE_SETDLLDIRECTORY@
+#define HAVE_COMMANDLINETOARGVW @HAVE_COMMANDLINETOARGVW@
+#define HAVE_GETMODULEHANDLE @HAVE_GETMODULEHANDLE@
 #define HAVE_WINRT 0
 
 #endif /* FFPLAY_GENERATED_CONFIG_H */
