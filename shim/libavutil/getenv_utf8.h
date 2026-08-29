@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 #include "config.h"
-#include <libavutil/mem.h>
+#include "libavutil/mem.h"
 
 #if HAVE_GETENV && defined(_WIN32)
 

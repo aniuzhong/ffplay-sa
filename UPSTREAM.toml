@@ -1,0 +1,25 @@
+# Snapshot identity for the vendored fftools/ and shim/ sources.
+#
+# Alignment policy: the fftools ref MUST be the source commit declared by the
+# gyan package below (its README.txt "Source Code: .../commit/<hash>"). To
+# track a different ref deliberately, set [sync] fftools_ref and explain why
+# in [sync] reason — scripts/sync-fftools.ps1 warns about undocumented
+# overrides, and the pair (fftools ref, gyan package) should move together.
+#
+# CMake reads [gyan] version and sdl2_version from this file to derive the
+# download URLs and tree locations. Edit versions only via
+# scripts/update-gyan.ps1 so the recorded commit stays consistent.
+
+[gyan]
+version = "9.0.1"
+url = "https://github.com/GyanD/codexffmpeg/releases/download/9.0.1/ffmpeg-9.0.1-full_build-shared.zip"
+sdl2_version = "2.32.10"
+
+[upstream]
+repository = "https://github.com/FFmpeg/FFmpeg"
+commit = "bf1b838f2ab88b4f8fd83443325c782ea0e0f7fa"
+
+[sync]
+last_synced = "2026-08-29"
+fftools_ref = ""
+reason = ""
