@@ -43,4 +43,5 @@ package) go into `[sync] fftools_ref` with a `reason` in `UPSTREAM.toml`.
 Feature experiments (`experiment/*`) never touch `fftools/` or `shim/`: they
 inject hooks into a build-tree copy of ffplay.c at configure time and carry
 their own sources, targets and CMake option — any branch can still build the
-plain upstream binary. See `gain/README.md` for the volume-gain experiment.
+plain upstream binary. Each experiment documents its hooks and caveats in its
+own sub-README.
