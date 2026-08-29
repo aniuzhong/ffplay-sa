@@ -149,15 +149,47 @@ file(WRITE "${GEN_DIR}/config_components.h"
   "#endif\n")
 
 # ---------------------------------------------------------------- target ----
+# Gain experiment (experiment/volume-gain branch): compiles a build-tree COPY
+# of ffplay.c with three injected hooks (cmake/gain_inject.cmake) and links
+# gain/. fftools/ stays byte-identical to the upstream snapshot. Turning the
+# option off restores the plain upstream build.
+option(FFPLAY_VLC_GAIN "Build ffplay with the VLC gain experiment (gain/)" ON)
+
 # Snapshot-agnostic source list: older snapshots have no ffplay_renderer.c,
 # newer ones do; the vendored tree is always the authority.
 file(GLOB FFPLAY_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/fftools/*.c")
+set(GAIN_DIR "${CMAKE_SOURCE_DIR}/gain")
+
+if(FFPLAY_VLC_GAIN)
+  # Configure-time injection: rewrites a build-tree copy of the pristine
+  # snapshot. CMAKE_CONFIGURE_DEPENDS re-runs configure (and thus re-injects)
+  # whenever upstream sync touches ffplay.c or the inject script changes.
+  set(PATCHED_FFPLAY "${GEN_DIR}/ffplay_patched.c")
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/fftools/ffplay.c"
+    "${CMAKE_SOURCE_DIR}/cmake/gain_inject.cmake")
+  set(GAIN_IN "${CMAKE_SOURCE_DIR}/fftools/ffplay.c")
+  set(GAIN_OUT "${PATCHED_FFPLAY}")
+  include("${CMAKE_SOURCE_DIR}/cmake/gain_inject.cmake")
+  file(GLOB GAIN_SOURCES "${GAIN_DIR}/*.c" "${GAIN_DIR}/vlc/*.c")
+  list(REMOVE_ITEM FFPLAY_SOURCES "${CMAKE_SOURCE_DIR}/fftools/ffplay.c")
+  list(APPEND FFPLAY_SOURCES "${PATCHED_FFPLAY}" ${GAIN_SOURCES})
+endif()
+
 add_executable(ffplay ${FFPLAY_SOURCES})
 
 target_include_directories(ffplay PRIVATE
   "${GEN_DIR}"
   "${CMAKE_SOURCE_DIR}/shim"
   "${FFMPEG_PREBUILT}/include")
+
+if(FFPLAY_VLC_GAIN)
+  target_include_directories(ffplay PRIVATE
+    "${GAIN_DIR}"
+    # the patched copy lives in the build tree, so fftools/ must be on the
+    # include path for its sibling headers (cmdutils.h, ...)
+    "${CMAKE_SOURCE_DIR}/fftools")
+endif()
 
 set(_ffmpeg_libs avutil avcodec avformat avfilter avdevice swscale swresample)
 foreach(_lib IN LISTS _ffmpeg_libs)
@@ -208,4 +240,15 @@ else()
   add_custom_command(TARGET ffplay POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${_prebuilt_sos} "$<TARGET_FILE_DIR:ffplay>"
     VERBATIM)
+endif()
+
+# ------------------------------------------------------------ gain tests ----
+if(FFPLAY_VLC_GAIN)
+  add_executable(test_replay_gain
+    "${GAIN_DIR}/tests/test_replay_gain.c"
+    "${GAIN_DIR}/vlc/replay_gain.c")
+  target_include_directories(test_replay_gain PRIVATE "${GAIN_DIR}")
+  if(NOT WIN32)
+    target_link_libraries(test_replay_gain PRIVATE m)
+  endif()
 endif()
