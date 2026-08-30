@@ -58,6 +58,17 @@ string(REPLACE "        /* prepare audio output */"
     "        ${GAIN_ON_STREAM}(ic, ic->streams[stream_index]);\n        /* prepare audio output */"
     text "${text}")
 
+# Optional fourth hook: placed after audio_hw_params->freq = spec.freq so the
+# backend learns the device's ACTUAL rate and channel count - SDL opens the
+# device with SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE,
+# so spec (not wanted_spec) defines the frame domain gain runs in.
+if(DEFINED GAIN_NOTE_DEVICE)
+    gain_require_unique_anchor("audio_hw_params->freq = spec.freq;")
+    string(REPLACE "audio_hw_params->freq = spec.freq;"
+        "audio_hw_params->freq = spec.freq;\n    ${GAIN_NOTE_DEVICE}(spec.freq, spec.channels);"
+        text "${text}")
+endif()
+
 # Rewrite only when the content changed so the build does not recompile
 # ffplay_patched.c on every reconfigure.
 set(_gain_need_write 1)
