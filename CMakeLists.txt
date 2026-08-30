@@ -151,9 +151,13 @@ file(WRITE "${GEN_DIR}/config_components.h"
 # ---------------------------------------------------------------- target ----
 # Gain experiment (experiment/volume-gain branch): compiles a build-tree COPY
 # of ffplay.c with three injected hooks (cmake/gain_inject.cmake) and links
-# gain/. fftools/ stays byte-identical to the upstream snapshot. Turning the
-# option off restores the plain upstream build.
-option(FFPLAY_VLC_GAIN "Build ffplay with the VLC gain experiment (gain/)" ON)
+# the selected gain/ backend. fftools/ stays byte-identical to the upstream
+# snapshot. Turning the option off restores the plain upstream build.
+option(FFPLAY_VLC_GAIN "Build ffplay with the gain experiment (gain/)" ON)
+set(FFPLAY_GAIN_BACKEND "vlc" CACHE STRING "Gain backend: 'vlc' or 'mpv'")
+if(NOT FFPLAY_GAIN_BACKEND STREQUAL "vlc" AND NOT FFPLAY_GAIN_BACKEND STREQUAL "mpv")
+  message(FATAL_ERROR "FFPLAY_GAIN_BACKEND must be 'vlc' or 'mpv', got '${FFPLAY_GAIN_BACKEND}'")
+endif()
 
 # Snapshot-agnostic source list: older snapshots have no ffplay_renderer.c,
 # newer ones do; the vendored tree is always the authority.
@@ -161,6 +165,20 @@ file(GLOB FFPLAY_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/fftools/*.c")
 set(GAIN_DIR "${CMAKE_SOURCE_DIR}/gain")
 
 if(FFPLAY_VLC_GAIN)
+  # Explicit source names per backend: the two adapters must not be linked
+  # together (each references only its own backend's core).
+  if(FFPLAY_GAIN_BACKEND STREQUAL "mpv")
+    set(GAIN_HEADER "ffplay_gain_mpv.h")
+    set(GAIN_WRAP "ffplay_gain_mpv_wrap_callback")
+    set(GAIN_ON_STREAM "ffplay_gain_mpv_on_stream")
+    file(GLOB GAIN_SOURCES "${GAIN_DIR}/ffplay_gain_mpv.c" "${GAIN_DIR}/mpv/*.c")
+  else()
+    set(GAIN_HEADER "ffplay_gain.h")
+    set(GAIN_WRAP "ffplay_gain_wrap_callback")
+    set(GAIN_ON_STREAM "ffplay_gain_on_stream")
+    file(GLOB GAIN_SOURCES "${GAIN_DIR}/ffplay_gain.c" "${GAIN_DIR}/vlc/*.c")
+  endif()
+
   # Configure-time injection: rewrites a build-tree copy of the pristine
   # snapshot. CMAKE_CONFIGURE_DEPENDS re-runs configure (and thus re-injects)
   # whenever upstream sync touches ffplay.c or the inject script changes.
@@ -171,7 +189,6 @@ if(FFPLAY_VLC_GAIN)
   set(GAIN_IN "${CMAKE_SOURCE_DIR}/fftools/ffplay.c")
   set(GAIN_OUT "${PATCHED_FFPLAY}")
   include("${CMAKE_SOURCE_DIR}/cmake/gain_inject.cmake")
-  file(GLOB GAIN_SOURCES "${GAIN_DIR}/*.c" "${GAIN_DIR}/vlc/*.c")
   list(REMOVE_ITEM FFPLAY_SOURCES "${CMAKE_SOURCE_DIR}/fftools/ffplay.c")
   list(APPEND FFPLAY_SOURCES "${PATCHED_FFPLAY}" ${GAIN_SOURCES})
 endif()
@@ -250,5 +267,17 @@ if(FFPLAY_VLC_GAIN)
   target_include_directories(test_replay_gain PRIVATE "${GAIN_DIR}")
   if(NOT WIN32)
     target_link_libraries(test_replay_gain PRIVATE m)
+  endif()
+
+  # mpv backend unit tests: golden vectors for the ported math plus an
+  # informational mpv-vs-VLC multiplier comparison (pure C, no FFmpeg).
+  add_executable(test_mpv_gain
+    "${GAIN_DIR}/tests/test_mpv_gain.c"
+    "${GAIN_DIR}/mpv/mpv_replaygain.c"
+    "${GAIN_DIR}/mpv/mpv_kernels.c"
+    "${GAIN_DIR}/vlc/replay_gain.c")
+  target_include_directories(test_mpv_gain PRIVATE "${GAIN_DIR}")
+  if(NOT WIN32)
+    target_link_libraries(test_mpv_gain PRIVATE m)
   endif()
 endif()

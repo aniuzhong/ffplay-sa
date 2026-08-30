@@ -16,11 +16,16 @@
 if(NOT DEFINED GAIN_IN OR NOT DEFINED GAIN_OUT)
     message(FATAL_ERROR "gain_inject.cmake is included from CMakeLists.txt with GAIN_IN/GAIN_OUT set")
 endif()
+# Backend-specific hook symbols, selected by FFPLAY_GAIN_BACKEND in
+# CMakeLists.txt (vlc: ffplay_gain.h, mpv: ffplay_gain_mpv.h).
+if(NOT DEFINED GAIN_HEADER OR NOT DEFINED GAIN_WRAP OR NOT DEFINED GAIN_ON_STREAM)
+    message(FATAL_ERROR "gain_inject.cmake requires GAIN_HEADER, GAIN_WRAP and GAIN_ON_STREAM")
+endif()
 
 file(READ "${GAIN_IN}" text)
 
 # Idempotency guard: the pristine snapshot must not mention the hooks.
-string(FIND "${text}" "ffplay_gain_wrap_callback" _pos)
+string(FIND "${text}" "${GAIN_WRAP}" _pos)
 if(NOT _pos EQUAL -1)
     message(FATAL_ERROR "gain_inject: ${GAIN_IN} already contains gain hooks")
 endif()
@@ -40,17 +45,17 @@ endmacro()
 
 gain_require_unique_anchor("#include \"opt_common.h\"")
 string(REPLACE "#include \"opt_common.h\""
-    "#include \"opt_common.h\"\n#include \"ffplay_gain.h\""
+    "#include \"opt_common.h\"\n#include \"${GAIN_HEADER}\""
     text "${text}")
 
 gain_require_unique_anchor("wanted_spec.callback = sdl_audio_callback;")
 string(REPLACE "wanted_spec.callback = sdl_audio_callback;"
-    "wanted_spec.callback = ffplay_gain_wrap_callback(sdl_audio_callback);"
+    "wanted_spec.callback = ${GAIN_WRAP}(sdl_audio_callback);"
     text "${text}")
 
 gain_require_unique_anchor("        /* prepare audio output */")
 string(REPLACE "        /* prepare audio output */"
-    "        ffplay_gain_on_stream(ic, ic->streams[stream_index]);\n        /* prepare audio output */"
+    "        ${GAIN_ON_STREAM}(ic, ic->streams[stream_index]);\n        /* prepare audio output */"
     text "${text}")
 
 # Rewrite only when the content changed so the build does not recompile
