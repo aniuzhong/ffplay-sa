@@ -17,11 +17,13 @@ Requires Python 3.12+. Standard library only.
 """
 import argparse
 import json
+import os
 import re
 import shutil
 import sys
 import tarfile
 import urllib.request
+import urllib.error
 import zipfile
 from datetime import date
 from pathlib import Path
@@ -34,6 +36,15 @@ FFTOOLS = ["ffplay.c", "ffplay_renderer.c", "ffplay_renderer.h", "cmdutils.c",
            "cmdutils.h", "opt_common.c", "opt_common.h", "fopen_utf8.h"]
 INCLUDE_RE = re.compile(r'#include\s+"((?:compat|libavutil)/[^"]+)"')
 RELINC_RE = re.compile(r'#include\s+"([a-z0-9_]+\.h)"')
+
+
+def get_proxy_handler(proxy_url):
+    """Create proxy handler from given proxy URL."""
+    if proxy_url:
+        return urllib.request.ProxyHandler({"http": proxy_url, "https": proxy_url})
+    return None
+
+
 STUBS = {  # headers replaced with hand-written equivalents, not upstream copies
     "libavutil/libm.h": """\
 /**
@@ -65,7 +76,11 @@ def toml_get(section, key):
 
 def toml_set(section, key, value):
     pat = re.compile(rf"(\[{re.escape(section)}\](?:(?!\n\[).)*?\n\s*{key}\s*=\s*)\"[^\"]*\"", re.S)
-    MANIFEST.write_text(pat.sub(rf'\1"{value}"', MANIFEST.read_text(), count=1), newline="\n")
+    # newline parameter not available in older Python versions
+    if sys.version_info >= (3, 10):
+        MANIFEST.write_text(pat.sub(rf'\1"{value}"', MANIFEST.read_text(), count=1), newline="\n")
+    else:
+        MANIFEST.write_text(pat.sub(rf'\1"{value}"', MANIFEST.read_text(), count=1))
 
 
 def download(url, dest):
@@ -85,7 +100,11 @@ def extract(archive, dest):
             z.extractall(dest)
     else:
         with tarfile.open(archive) as t:
-            t.extractall(dest, filter="data")
+            # filter parameter is only available in Python 3.12+
+            if sys.version_info >= (3, 12):
+                t.extractall(dest, filter="data")
+            else:
+                t.extractall(dest)
 
 
 def tree_commit_of(include):
@@ -145,7 +164,11 @@ def regenerate_shim(include, tree_root):
                 continue
             if h in STUBS:
                 dst.parent.mkdir(parents=True, exist_ok=True)
-                dst.write_text(STUBS[h], newline="\n")
+                # newline parameter not available in older Python versions
+                if sys.version_info >= (3, 10):
+                    dst.write_text(STUBS[h], newline="\n")
+                else:
+                    dst.write_text(STUBS[h])
             elif (tree_root / h).is_file():
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(tree_root / h, dst)
@@ -162,7 +185,11 @@ def regenerate_shim(include, tree_root):
             lambda m: m.group(0) if m.group(1) in ("config.h", "config_components.h")
             else f'#include "libavutil/{m.group(1)}"', text)
         if fixed != text:
-            f.write_text(fixed, newline="\n")
+            # newline parameter not available in older Python versions
+            if sys.version_info >= (3, 10):
+                f.write_text(fixed, newline="\n")
+            else:
+                f.write_text(fixed)
             print(f"  rewrote relative includes in shim/libavutil/{f.name}")
 
 
@@ -172,7 +199,17 @@ def main():
                     help="sync fftools from this ref instead of the manifest commit (set a reason in UPSTREAM.toml)")
     ap.add_argument("-s", "--source-dir",
                     help="sync fftools from a local FFmpeg checkout instead of the network")
+    ap.add_argument("-p", "--proxy",
+                    help="use proxy for network requests (e.g., http://127.0.0.1:10808)")
     args = ap.parse_args()
+
+    # Set up proxy if provided
+    if args.proxy:
+        proxy_handler = get_proxy_handler(args.proxy)
+        if proxy_handler:
+            opener = urllib.request.build_opener(proxy_handler)
+            urllib.request.install_opener(opener)
+            print(f"Using proxy: {args.proxy}")
 
     asset = toml_get(PLATFORM, "asset")
     repository = toml_get("upstream", "repository")

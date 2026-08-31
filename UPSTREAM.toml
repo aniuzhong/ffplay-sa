@@ -24,6 +24,6 @@ sdl2_version = "2.32.10"
 asset = "ffmpeg-n9.0-latest-linux64-gpl-shared-9.0.tar.xz"
 
 [sync]
-last_synced = "2026-08-30"
+last_synced = "2026-08-31"
 fftools_ref = ""
 reason = ""

@@ -5,7 +5,7 @@
 # UPSTREAM.toml is the single version knob: CMake reads the per-platform
 # asset from it; scripts/update.ps1 / update.sh keep the vendored fftools
 # snapshot aligned with the same package. See README.md.
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16.3)
 project(ffplay-standalone C)
 
 set(CMAKE_C_STANDARD 99)
@@ -84,7 +84,7 @@ endfunction()
 
 ffplay_fetch("${FFMPEG_URL}" "${FFMPEG_PREBUILT}/include/libavutil/avutil.h")
 
-# ---- generated config.h from prebuilt ----
+# ----generated config.h from prebuilt ----
 # fftools needs a config.h. We synthesize one matching the prebuilt package so
 # the banner matches and opt_common.c does not print its "library configuration
 # mismatch" warning (it compares against the DLLs' embedded string at runtime).
@@ -199,7 +199,7 @@ if(WIN32)
     file(GLOB _prebuilt_dlls "${FFMPEG_PREBUILT}/bin/*.dll")
     add_custom_command(TARGET ffplay POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-                        "${SDL2_ROOT}/lib/x64/SDL2.dll" "$<TARGET_FILE_DIR:ffplay>"
+                "${SDL2_ROOT}/lib/x64/SDL2.dll" "$<TARGET_FILE_DIR:ffplay>"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${_prebuilt_dlls} "$<TARGET_FILE_DIR:ffplay>"
         VERBATIM)
 else()
@@ -207,7 +207,13 @@ else()
     # the runtime .so come from the distro. m/pthread/dl: modern binutils no
     # longer pull DSOs transitively, and ffplay references libm directly.
     find_package(SDL2 REQUIRED)
-    target_link_libraries(ffplay PRIVATE SDL2::SDL2 m pthread dl)
+    # Compatibility with older SDL2 versions that don't provide SDL2::SDL2 target
+    if(TARGET SDL2::SDL2)
+        target_link_libraries(ffplay PRIVATE SDL2::SDL2 m pthread dl)
+    else()
+        target_link_libraries(ffplay PRIVATE ${SDL2_LIBRARIES} m pthread dl)
+        target_include_directories(ffplay PRIVATE ${SDL2_INCLUDE_DIRS})
+    endif()
 
     # Keep the prebuilt package's shared libraries next to the exe so it runs
     # from the build directory without touching LD_LIBRARY_PATH.
