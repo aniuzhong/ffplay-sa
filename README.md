@@ -14,7 +14,7 @@ matches the package's own ffplay byte-for-byte.
 
 | | Windows | Linux |
 |---|---|---|
-| once | VS2022, CMake, Python 3.12+ | `apt install build-essential cmake ninja-build libsdl2-dev` |
+| once | VS2022, CMake 3.16.2+, Python 3.8+ | `apt install build-essential cmake ninja-build libsdl2-dev` |
 
 ```
 py scripts\update.py                                  # Linux: python3 scripts/update.py
