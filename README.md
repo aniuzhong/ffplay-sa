@@ -1,5 +1,9 @@
 # ffplay-standalone
 
+[🇺🇸 English](README.md) | [🇨🇳 简体中文](README-cn.md)
+
+[![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+
 Build upstream [ffplay](https://github.com/FFmpeg/FFmpeg/blob/master/fftools/ffplay.c)
 unmodified against prebuilt FFmpeg shared libraries — no FFmpeg compilation.
 One provider for both platforms: **BtbN's daily GPL-shared builds** (win64 /
