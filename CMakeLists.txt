@@ -84,7 +84,7 @@ endfunction()
 
 ffplay_fetch("${FFMPEG_URL}" "${FFMPEG_PREBUILT}/include/libavutil/avutil.h")
 
-# ----generated config.h from prebuilt ----
+# ---- generated config.h from prebuilt ----
 # fftools needs a config.h. We synthesize one matching the prebuilt package so
 # the banner matches and opt_common.c does not print its "library configuration
 # mismatch" warning (it compares against the DLLs' embedded string at runtime).
