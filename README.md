@@ -1,3 +1,7 @@
+[🇨🇳 简体中文](README-cn.md) | [🇺🇸 English](README.md)
+
+[![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+
 # ffplay-standalone
 
 Build upstream [ffplay](https://github.com/FFmpeg/FFmpeg/blob/master/fftools/ffplay.c)
