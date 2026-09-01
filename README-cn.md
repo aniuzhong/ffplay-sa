@@ -1,8 +1,8 @@
-# ffplay-standalone
-
-[🇺🇸 English](README.md) | [🇨🇳 简体中文](README-cn.md)
+[🇨🇳 简体中文](README-cn.md) | [🇺🇸 English](README.md)
 
 [![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+
+# ffplay-standalone
 
 基于预编译的 FFmpeg 共享库构建未经修改的上游
 [ffplay](https://github.com/FFmpeg/FFmpeg/blob/master/fftools/ffplay.c) ——
